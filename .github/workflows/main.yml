@@ -1,0 +1,29 @@
+name: Daily Prediction
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pandas scikit-learn joblib kagglehub requests
+      - run: python predict.py
+        env:
+          NTFY_TOPIC: govind-btc-daily-7q4m
+      - name: Save results
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add predictions.csv models.pkl
+          git commit -m "daily prediction" || echo "nothing to commit"
+          git push
